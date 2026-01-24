@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ shop.name }} - Billing</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 10px; background: #f0f2f5; color: #333; margin: 0; }
+        .container { max-width: 900px; background: white; padding: 20px; border-radius: 12px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
+        
+        /* Header Section */
+        .top-nav { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .admin-link { text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; border: 1px solid #007bff; padding: 5px 10px; border-radius: 5px; }
+        
+        .header-inputs { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+        .small-group { flex: 1; }
+        .box-label { font-size: 11px; color: #777; font-weight: bold; display: block; text-transform: uppercase; }
+        .small-input { border: none; border-bottom: 2px solid #ddd; font-size: 16px; padding: 4px; background: transparent; width: 100%; outline: none; }
+
+        h1 { text-align: center; color: #2c3e50; margin: 5px 0; font-size: 1.5rem; }
+        p.subtitle { text-align: center; font-size: 0.8em; color: #666; margin-bottom: 20px; }
+
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
+        @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr 1fr; } .span-2 { grid-column: span 2; } }
+        
+        label { font-weight: 600; font-size: 0.85em; color: #555; margin-bottom: 5px; display: block; }
+        input, select { padding: 12px; width: 100%; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+
+        /* Items List */
+        .item-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; background: #fdfdfd; padding: 12px; border: 1px solid #eee; border-radius: 8px; align-items: center; position: relative; }
+        .item-row select { flex: 2; min-width: 150px; }
+        .item-row input { flex: 1; min-width: 80px; }
+        
+        .btn { padding: 12px 20px; cursor: pointer; border: none; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 14px; width: 100%; margin-bottom: 10px; }
+        .btn-blue { background: #007bff; color: white; }
+        .btn-green { background: #28a745; color: white; font-size: 1.1em; margin-top: 10px; }
+
+        /* Live Totals Box - Sticky for Mobile */
+        .live-box { background: #fffde7; padding: 15px; margin-top: 25px; border: 2px solid #fbc02d; border-radius: 10px; position: sticky; bottom: 10px; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .live-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
+        .live-val { font-size: 1.1em; font-weight: bold; display: block; color: #2c3e50; }
+        .balance-red { color: #d32f2f; }
+
+        .success-area { margin-top: 30px; padding: 20px; border: 2px solid #28a745; border-radius: 10px; background: #f1f8e9; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-nav">
+        <span style="font-size: 12px; color: #888;">System Active</span>
+        <a href="/admin" class="admin-link">Settings & Stock</a>
+    </div>
+
+    <form id="mainForm" method="POST">
+        <div class="header-inputs">
+            <div class="small-group">
+                <label class="box-label">Code (Rate/10)</label>
+                <input type="number" step="0.01" name="math_rate" id="mathRate" class="small-input" oninput="calculateEverything()" placeholder="0.00" required>
+            </div>
+            <div class="small-group" style="text-align: right;">
+                <label class="box-label">Extra Adj %</label>
+                <input type="number" step="0.01" name="extra_adj" id="extraAdj" class="small-input" oninput="calculateEverything()" value="0">
+            </div>
+        </div>
+
+        <h1>{{ shop.name }}</h1>
+        <p class="subtitle">{{ shop.address }} | Mob: {{ shop.mobile }}</p>
+        
+        <div class="grid">
+            <div class="span-2">
+                <label>Customer Name:</label>
+                <input name="customer" placeholder="Enter name" required>
+            </div>
+            <div>
+                <label>Mobile No:</label>
+                <input name="mobile" placeholder="10-digit number" required>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div>
+                <label>Metal Type:</label>
+                <select name="metal" id="metalSelect" onchange="updateItemDropdowns(); calculateEverything();">
+                    <option value="Gold">Gold</option>
+                    <option value="Silver">Silver</option>
+                </select>
+            </div>
+            <div id="purityBox">
+                <label>Purity:</label>
+                <select name="purity" id="purity" onchange="calculateEverything()">
+                    <option value="75">18K (75%)</option>
+                    <option value="84">20K (84%)</option>
+                    <option value="92">22K (92%)</option>
+                </select>
+            </div>
+            <div>
+                <label>Market Rate (Display):</label>
+                <input type="text" name="display_rate" id="displayRate" placeholder="e.g. 78,000">
+            </div>
+        </div>
+
+        <hr style="border: 0.5px solid #eee; margin: 20px 0;">
+
+        <p><b>Items Being Sold:</b></p>
+        <div id="itemList"></div>
+        <button type="button" class="btn btn-blue" onclick="addItem()">+ Add Item from Stock</button>
+
+        <div class="grid" style="margin-top: 20px;">
+            <div>
+                <label>Total Net Weight (gm):</label>
+                <input type="number" step="0.001" id="netWeight" name="net_weight" oninput="calculateEverything()" required>
+            </div>
+            <div>
+                <label style="color: #d32f2f;">Old Return Weight (-):</label>
+                <input type="number" step="0.001" id="oldWeight" name="old_weight" value="0" oninput="calculateEverything()">
+            </div>
+            <div>
+                <label id="makingLabel">Making %:</label>
+                <input type="number" step="0.01" id="making" name="making" value="0" oninput="calculateEverything()">
+            </div>
+        </div>
+
+        <div class="grid">
+            <div><label>GST %:</label><input type="number" step="0.01" id="gstPer" name="gst_per" value="3" oninput="calculateEverything()"></div>
+            <div><label>Discount (Rs):</label><input type="number" step="0.01" id="discount" name="discount" value="0" oninput="calculateEverything()"></div>
+            <div><label>Paid Amount (Rs):</label><input type="number" step="0.01" id="paid" name="paid_amount" value="0" oninput="calculateEverything()"></div>
+        </div>
+
+        <div class="live-box">
+            <div class="live-grid">
+                <div>Total<br><span id="viewTotal" class="live-val">₹ 0</span></div>
+                <div>Paid<br><span id="viewPaid" class="live-val">₹ 0</span></div>
+                <div>Due<br><span id="viewBalance" class="live-val balance-red">₹ 0</span></div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-green">SAVE BILL & UPDATE STOCK</button>
+    </form>
+
+    {% if bill %}
+    <div class="success-area">
+        <h2 style="color: #28a745; margin-top: 0; font-size: 1.2em;">✓ Bill Saved Successfully</h2>
+        <form method="POST" action="/pdf">
+            {% for key, value in bill.items() %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endfor %}
+            <button type="submit" class="btn btn-blue" style="padding: 15px; font-size: 1.1em;">
+                DOWNLOAD PDF RECEIPT
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Data passed from Flask
+const goldItems = {{ gold_list|tojson }};
+const silverItems = {{ silver_list|tojson }};
+
+function updateItemDropdowns() {
+    const metal = document.getElementById("metalSelect").value;
+    const dropdowns = document.querySelectorAll(".item-name-select");
+    const items = (metal === "Gold") ? goldItems : silverItems;
+    
+    dropdowns.forEach(select => {
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">Select Item</option>';
+        items.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item; opt.innerText = item;
+            select.appendChild(opt);
+        });
+        select.value = currentVal;
+    });
+}
+
+function addItem() {
+    const metal = document.getElementById("metalSelect").value;
+    const items = (metal === "Gold") ? goldItems : silverItems;
+    const div = document.createElement("div");
+    div.className = "item-row";
+    
+    let options = '<option value="">Select Item</option>';
+    items.forEach(item => { options += `<option value="${item}">${item}</option>`; });
+    
+    div.innerHTML = `
+        <select name="item_name[]" class="item-name-select" required>${options}</select>
+        <input type="number" step="0.001" name="item_weight[]" class="w-in" placeholder="Weight" oninput="updateTotalWeight()" required>
+        <button type="button" onclick="this.parentElement.remove(); updateTotalWeight();" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:20px;">✕</button>
+    `;
+    document.getElementById("itemList").appendChild(div);
+}
+
+function updateTotalWeight() {
+    let totalW = 0; 
+    document.querySelectorAll(".w-in").forEach(input => {
+        totalW += parseFloat(input.value || 0);
+    });
+    if (totalW > 0) document.getElementById("netWeight").value = totalW.toFixed(3);
+    calculateEverything();
+}
+
+function calculateEverything() {
+    const metal = document.getElementById("metalSelect").value;
+    document.getElementById("purityBox").style.display = (metal === "Gold") ? "block" : "none";
+    document.getElementById("makingLabel").innerText = (metal === "Gold") ? "Making %:" : "Making Fixed (Rs):";
+
+    let mathRate = parseFloat(document.getElementById("mathRate").value || 0);
+    let netW = parseFloat(document.getElementById("netWeight").value || 0);
+    let oldW = parseFloat(document.getElementById("oldWeight").value || 0);
+    let making = parseFloat(document.getElementById("making").value || 0);
+    let extraAdj = parseFloat(document.getElementById("extraAdj").value || 0);
+    let gstPer = parseFloat(document.getElementById("gstPer").value || 0);
+    let disc = parseFloat(document.getElementById("discount").value || 0);
+    let paid = parseFloat(document.getElementById("paid").value || 0);
+    
+    let total = 0;
+    let billingW = netW - oldW;
+
+    if (mathRate > 0 && billingW > 0) {
+        if (metal === "Gold") {
+            let purity = parseFloat(document.getElementById("purity").value);
+            let baseVal = (mathRate / 10) * billingW;
+            let metalAmt = baseVal * (purity / 100);
+            let makingAmt = baseVal * ((making + extraAdj) / 100);
+            total = (metal_amt = metalAmt) + makingAmt + ((metalAmt + makingAmt) * (gstPer / 100));
+        } else {
+            let metalAmt = (mathRate / 1000) * billingW;
+            let makingAmt = making + (metalAmt * (extra_adj = extraAdj / 100));
+            total = metalAmt + makingAmt + ((metalAmt + makingAmt) * (gstPer / 100));
+        }
+    }
+
+    let finalTotal = Math.max(0, total - disc);
+    let balance = finalTotal - paid;
+
+    document.getElementById("viewTotal").innerText = "₹ " + Math.round(finalTotal).toLocaleString('en-IN');
+    document.getElementById("viewPaid").innerText = "₹ " + Math.round(paid).toLocaleString('en-IN');
+    document.getElementById("viewBalance").innerText = "₹ " + Math.round(balance).toLocaleString('en-IN');
+}
+</script>
+</body>
+</html>
