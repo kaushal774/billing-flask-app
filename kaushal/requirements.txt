@@ -1,4 +1,5 @@
 Flask
 reportlab
 gunicorn
+Flask-SQLAlchemy
 
