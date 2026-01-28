@@ -1,5 +1,6 @@
 Flask
+Flask-SQLAlchemy
+pandas
+openpyxl
 reportlab
 gunicorn
-Flask-SQLAlchemy
-
