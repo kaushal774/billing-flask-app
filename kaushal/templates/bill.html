@@ -3,22 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ shop.name }} - Billing</title>
+    <title>{{ shop.name }} - Billing System</title>
     <style>
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 10px; background: #f0f2f5; color: #333; margin: 0; }
-        .container { max-width: 900px; background: white; padding: 20px; border-radius: 12px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
+        :root { --primary: #007bff; --secondary: #28a745; --dark: #2c3e50; --light: #f8f9fa; --whatsapp: #25D366; --pdf: #6f42c1; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 10px; background: #f0f2f5; color: #333; margin: 0; }
+        .container { max-width: 900px; background: white; padding: 25px; border-radius: 12px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        /* Header Section */
-        .top-nav { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .admin-link { text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; border: 1px solid #007bff; padding: 5px 10px; border-radius: 5px; }
-        
-        .header-inputs { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-        .small-group { flex: 1; }
-        .box-label { font-size: 11px; color: #777; font-weight: bold; display: block; text-transform: uppercase; }
-        .small-input { border: none; border-bottom: 2px solid #ddd; font-size: 16px; padding: 4px; background: transparent; width: 100%; outline: none; }
+        /* Navigation Styles */
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .nav-btn { text-decoration: none; font-weight: bold; font-size: 13px; padding: 8px 14px; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; color: white; }
+        .btn-gallery { background: var(--pdf); }
+        .btn-records { background: var(--secondary); }
+        .btn-settings { border: 1px solid var(--primary); color: var(--primary); }
+        .btn-settings:hover { background: var(--primary); color: white; }
 
-        h1 { text-align: center; color: #2c3e50; margin: 5px 0; font-size: 1.5rem; }
-        p.subtitle { text-align: center; font-size: 0.8em; color: #666; margin-bottom: 20px; }
+        /* Header Inputs */
+        .header-inputs { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px; background: var(--light); padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; }
+        .box-label { font-size: 11px; color: #666; font-weight: bold; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .small-input { border: none; border-bottom: 2px solid #ccc; font-size: 18px; padding: 4px; background: transparent; width: 100%; outline: none; font-weight: bold; color: var(--dark); }
+
+        h1 { text-align: center; color: var(--dark); margin: 5px 0; font-size: 1.8rem; }
+        p.subtitle { text-align: center; font-size: 0.9em; color: #666; margin-bottom: 25px; }
 
         .grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
         @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr 1fr; } .span-2 { grid-column: span 2; } }
@@ -26,76 +32,81 @@
         label { font-weight: 600; font-size: 0.85em; color: #555; margin-bottom: 5px; display: block; }
         input, select { padding: 12px; width: 100%; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
 
-        /* Items List */
-        .item-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; background: #fdfdfd; padding: 12px; border: 1px solid #eee; border-radius: 8px; align-items: center; position: relative; }
+        /* Dynamic Items */
+        .item-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; background: #fff; padding: 12px; border: 1px dashed #bbb; border-radius: 8px; align-items: center; }
         .item-row select { flex: 2; min-width: 150px; }
         .item-row input { flex: 1; min-width: 80px; }
         
-        .btn { padding: 12px 20px; cursor: pointer; border: none; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 14px; width: 100%; margin-bottom: 10px; }
-        .btn-blue { background: #007bff; color: white; }
-        .btn-green { background: #28a745; color: white; font-size: 1.1em; margin-top: 10px; }
+        .btn { padding: 14px 20px; cursor: pointer; border: none; font-weight: bold; border-radius: 8px; transition: 0.3s; font-size: 15px; width: 100%; margin-bottom: 10px; }
+        .btn-add { background: #e3f2fd; color: var(--primary); border: 1px solid var(--primary); }
+        .btn-save { background: var(--secondary); color: white; font-size: 1.1em; margin-top: 15px; }
 
-        /* Live Totals Box - Sticky for Mobile */
-        .live-box { background: #fffde7; padding: 15px; margin-top: 25px; border: 2px solid #fbc02d; border-radius: 10px; position: sticky; bottom: 10px; z-index: 10; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .live-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
-        .live-val { font-size: 1.1em; font-weight: bold; display: block; color: #2c3e50; }
-        .balance-red { color: #d32f2f; }
+        /* Live Total Box */
+        .live-box { background: #fff9c4; padding: 18px; margin-top: 25px; border-radius: 12px; border: 2px solid #fbc02d; position: sticky; bottom: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); }
+        .live-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
+        .live-val { font-size: 1.2em; font-weight: 800; display: block; color: var(--dark); }
 
-        .success-area { margin-top: 30px; padding: 20px; border: 2px solid #28a745; border-radius: 10px; background: #f1f8e9; text-align: center; }
+        /* Success & WhatsApp */
+        .success-area { margin-top: 35px; padding: 25px; border: 2px solid var(--secondary); border-radius: 12px; background: #f1f8e9; text-align: center; }
+        .whatsapp-btn { background: var(--whatsapp); color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 1.1em; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="top-nav">
-        <span style="font-size: 12px; color: #888;">System Active</span>
-        <a href="/admin" class="admin-link">Settings & Stock</a>
+        <div class="nav-links">
+            <a href="/bill_gallery" class="nav-btn btn-gallery">📁 PDF Gallery</a>
+            <a href="/records" class="nav-btn btn-records">📊 View Records</a>
+            <a href="/admin" class="nav-btn btn-settings">⚙️ Settings</a>
+        </div>
+        <span style="font-size: 12px; color: #888;">System Secure 🔒</span>
     </div>
 
     <form id="mainForm" method="POST">
         <div class="header-inputs">
-            <div class="small-group">
+            <div style="flex: 1;">
                 <label class="box-label">Code (Rate/10)</label>
-                <input type="number" step="0.01" name="math_rate" id="mathRate" class="small-input" oninput="calculateEverything()" placeholder="0.00" required>
+                <input type="number" step="0.01" name="math_rate" id="mathRate" class="small-input" oninput="syncMarketRate(); calculateEverything();" placeholder="0.00" required>
             </div>
-            <div class="small-group" style="text-align: right;">
+            <div style="flex: 1; text-align: right;">
                 <label class="box-label">Extra Adj %</label>
                 <input type="number" step="0.01" name="extra_adj" id="extraAdj" class="small-input" oninput="calculateEverything()" value="0">
             </div>
         </div>
 
         <h1>{{ shop.name }}</h1>
-        <p class="subtitle">{{ shop.address }} | Mob: {{ shop.mobile }}</p>
+        <p class="subtitle">{{ shop.address }} | 📞 {{ shop.mobile }}</p>
         
         <div class="grid">
             <div class="span-2">
                 <label>Customer Name:</label>
-                <input name="customer" placeholder="Enter name" required>
+                <input name="customer" placeholder="Enter Full Name" required>
             </div>
             <div>
                 <label>Mobile No:</label>
-                <input name="mobile" placeholder="10-digit number" required>
+                <input name="mobile" placeholder="10-digit mobile" required>
             </div>
         </div>
 
         <div class="grid">
             <div>
                 <label>Metal Type:</label>
-                <select name="metal" id="metalSelect" onchange="updateItemDropdowns(); calculateEverything();">
+                <select name="metal" id="metalSelect" onchange="updateItemDropdowns(); syncMarketRate(); calculateEverything();">
                     <option value="Gold">Gold</option>
                     <option value="Silver">Silver</option>
                 </select>
             </div>
             <div id="purityBox">
                 <label>Purity:</label>
-                <select name="purity" id="purity" onchange="calculateEverything()">
+                <select name="purity" id="purity" onchange="syncMarketRate(); calculateEverything()">
                     <option value="75">18K (75%)</option>
                     <option value="84">20K (84%)</option>
-                    <option value="92">22K (92%)</option>
+                    <option value="92">22K (91.6%)</option>
                 </select>
             </div>
             <div>
-                <label>Market Rate (Display):</label>
+                <label>Display Rate (Market):</label>
                 <input type="text" name="display_rate" id="displayRate" placeholder="e.g. 78,000">
             </div>
         </div>
@@ -104,15 +115,15 @@
 
         <p><b>Items Being Sold:</b></p>
         <div id="itemList"></div>
-        <button type="button" class="btn btn-blue" onclick="addItem()">+ Add Item from Stock</button>
+        <button type="button" class="btn btn-add" onclick="addItem()">+ Add Item from Stock</button>
 
         <div class="grid" style="margin-top: 20px;">
             <div>
-                <label>Total Net Weight (gm):</label>
+                <label>Net Weight (gm):</label>
                 <input type="number" step="0.001" id="netWeight" name="net_weight" oninput="calculateEverything()" required>
             </div>
             <div>
-                <label style="color: #d32f2f;">Old Return Weight (-):</label>
+                <label style="color: #d32f2f;">Old Weight Return (-):</label>
                 <input type="number" step="0.001" id="oldWeight" name="old_weight" value="0" oninput="calculateEverything()">
             </div>
             <div>
@@ -123,46 +134,68 @@
 
         <div class="grid">
             <div><label>GST %:</label><input type="number" step="0.01" id="gstPer" name="gst_per" value="3" oninput="calculateEverything()"></div>
-            <div><label>Discount (Rs):</label><input type="number" step="0.01" id="discount" name="discount" value="0" oninput="calculateEverything()"></div>
-            <div><label>Paid Amount (Rs):</label><input type="number" step="0.01" id="paid" name="paid_amount" value="0" oninput="calculateEverything()"></div>
+            <div><label>Discount (Rs):</label><input type="number" step="1" id="discount" name="discount" value="0" oninput="calculateEverything()"></div>
+            <div><label>Paid Amount (Rs):</label><input type="number" step="1" id="paid" name="paid_amount" value="0" oninput="calculateEverything()"></div>
         </div>
 
         <div class="live-box">
             <div class="live-grid">
-                <div>Total<br><span id="viewTotal" class="live-val">₹ 0</span></div>
-                <div>Paid<br><span id="viewPaid" class="live-val">₹ 0</span></div>
-                <div>Due<br><span id="viewBalance" class="live-val balance-red">₹ 0</span></div>
+                <div><span style="font-size: 11px;">TOTAL</span><span id="viewTotal" class="live-val">₹ 0</span></div>
+                <div><span style="font-size: 11px;">PAID</span><span id="viewPaid" class="live-val">₹ 0</span></div>
+                <div><span style="font-size: 11px;">DUE</span><span id="viewBalance" class="live-val" style="color:#e74c3c;">₹ 0</span></div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-green">SAVE BILL & UPDATE STOCK</button>
+        <button type="submit" class="btn btn-save">SAVE BILL & UPDATE STOCK</button>
     </form>
 
     {% if bill %}
     <div class="success-area">
-        <h2 style="color: #28a745; margin-top: 0; font-size: 1.2em;">✓ Bill Saved Successfully</h2>
-        <form method="POST" action="/pdf">
-            {% for key, value in bill.items() %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}">
-            {% endfor %}
-            <button type="submit" class="btn btn-blue" style="padding: 15px; font-size: 1.1em;">
-                DOWNLOAD PDF RECEIPT
-            </button>
-        </form>
+        <h2 style="color: var(--secondary); margin-top: 0;">✓ Transaction Saved</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: auto;">
+            <form method="POST" action="/pdf">
+                {% for key, value in bill.items() %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endfor %}
+                <button type="submit" class="btn" style="background:var(--primary); color:white;">📥 DOWNLOAD PDF</button>
+            </form>
+
+            <a href="https://wa.me/91{{ bill.Mobile }}?text=Hello%20{{ bill.Customer }},%20your%20bill%20from%20{{ shop.name }}%20is%20ready.%20Total:%20Rs.{{ bill.Total }}." 
+               target="_blank" class="btn whatsapp-btn">
+                SEND VIA WHATSAPP
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>
 
 <script>
-// Data passed from Flask
 const goldItems = {{ gold_list|tojson }};
 const silverItems = {{ silver_list|tojson }};
+
+function syncMarketRate() {
+    const mathRate = parseFloat(document.getElementById("mathRate").value || 0);
+    const purity = parseFloat(document.getElementById("purity").value || 75);
+    const metal = document.getElementById("metalSelect").value;
+    const displayRateInput = document.getElementById("displayRate");
+
+    if (mathRate > 0) {
+        let calculatedRate;
+        if (metal === "Gold") {
+            // Market Rate = (Code * Purity%) 
+            // This effectively divides the usual rate by 10 relative to the mathRate logic
+            calculatedRate = Math.round(mathRate * (purity / 100));
+        } else {
+            calculatedRate = mathRate; 
+        }
+        displayRateInput.value = calculatedRate;
+    }
+}
 
 function updateItemDropdowns() {
     const metal = document.getElementById("metalSelect").value;
     const dropdowns = document.querySelectorAll(".item-name-select");
     const items = (metal === "Gold") ? goldItems : silverItems;
-    
     dropdowns.forEach(select => {
         const currentVal = select.value;
         select.innerHTML = '<option value="">Select Item</option>';
@@ -180,23 +213,19 @@ function addItem() {
     const items = (metal === "Gold") ? goldItems : silverItems;
     const div = document.createElement("div");
     div.className = "item-row";
-    
     let options = '<option value="">Select Item</option>';
     items.forEach(item => { options += `<option value="${item}">${item}</option>`; });
-    
     div.innerHTML = `
         <select name="item_name[]" class="item-name-select" required>${options}</select>
         <input type="number" step="0.001" name="item_weight[]" class="w-in" placeholder="Weight" oninput="updateTotalWeight()" required>
-        <button type="button" onclick="this.parentElement.remove(); updateTotalWeight();" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:20px;">✕</button>
+        <button type="button" onclick="this.parentElement.remove(); updateTotalWeight();" style="color:red; border:none; background:none; cursor:pointer; font-size:20px;">✕</button>
     `;
     document.getElementById("itemList").appendChild(div);
 }
 
 function updateTotalWeight() {
     let totalW = 0; 
-    document.querySelectorAll(".w-in").forEach(input => {
-        totalW += parseFloat(input.value || 0);
-    });
+    document.querySelectorAll(".w-in").forEach(input => { totalW += parseFloat(input.value || 0); });
     if (totalW > 0) document.getElementById("netWeight").value = totalW.toFixed(3);
     calculateEverything();
 }
@@ -224,18 +253,20 @@ function calculateEverything() {
             let baseVal = (mathRate / 10) * billingW;
             let metalAmt = baseVal * (purity / 100);
             let makingAmt = baseVal * ((making + extraAdj) / 100);
-            total = (metal_amt = metalAmt) + makingAmt + ((metalAmt + makingAmt) * (gstPer / 100));
+            let subtotal = metalAmt + makingAmt;
+            let totalWithGst = subtotal + (subtotal * (gstPer / 100));
+            // Apply 0.2911% more for gold section
+            total = totalWithGst * 1.002911;
         } else {
             let metalAmt = (mathRate / 1000) * billingW;
-            let makingAmt = making + (metalAmt * (extra_adj = extraAdj / 100));
-            total = metalAmt + makingAmt + ((metalAmt + makingAmt) * (gstPer / 100));
+            let makingAmt = making + (metalAmt * (extraAdj / 100));
+            let subtotal = metalAmt + makingAmt;
+            total = subtotal + (subtotal * (gstPer / 100));
         }
     }
-
-    let finalTotal = Math.max(0, total - disc);
+    let finalTotal = Math.round(Math.max(0, total - disc));
     let balance = finalTotal - paid;
-
-    document.getElementById("viewTotal").innerText = "₹ " + Math.round(finalTotal).toLocaleString('en-IN');
+    document.getElementById("viewTotal").innerText = "₹ " + finalTotal.toLocaleString('en-IN');
     document.getElementById("viewPaid").innerText = "₹ " + Math.round(paid).toLocaleString('en-IN');
     document.getElementById("viewBalance").innerText = "₹ " + Math.round(balance).toLocaleString('en-IN');
 }

@@ -1,25 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>Software Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        /* This style ONLY applies to the shop-locked class */
+        .shop-locked {
+            background-color: #f8f9fa !important;
+            cursor: not-allowed;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body class="bg-light p-3">
     <div class="container bg-white p-4 rounded shadow">
-        <div class="d-flex justify-content-between">
+        
+        <div class="d-flex justify-content-between align-items-center">
             <h2>Shop Settings</h2>
             <a href="/" class="btn btn-outline-primary">Go to Billing</a>
         </div>
+
         <form method="POST" class="mt-3">
             <input type="hidden" name="update_shop">
             <div class="row g-2">
-                <div class="col-6"><label>Shop Name</label><input name="name" class="form-control" value="{{ shop.name }}"></div>
-                <div class="col-6"><label>GST No</label><input name="gst" class="form-control" value="{{ shop.gst }}"></div>
-                <div class="col-12"><label>Address</label><input name="address" class="form-control" value="{{ shop.address }}"></div>
-                <div class="col-6"><label>Mobile</label><input name="mobile" class="form-control" value="{{ shop.mobile }}"></div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold text-muted">Shop Name</label>
+                    <input name="name" class="form-control shop-locked" value="{{ shop.name }}" readonly>
+                </div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold text-muted">GST No</label>
+                    <input name="gst" class="form-control shop-locked" value="{{ shop.gst }}" readonly>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-muted">Address</label>
+                    <input name="address" class="form-control shop-locked" value="{{ shop.address }}" readonly>
+                </div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold text-muted">Mobile</label>
+                    <input name="mobile" class="form-control shop-locked" value="{{ shop.mobile }}" readonly>
+                </div>
             </div>
-            <button class="btn btn-primary mt-2">Update Shop Info</button>
         </form>
 
         <hr class="my-4">
@@ -27,20 +48,47 @@
         <h2>Inventory Stock</h2>
         <form method="POST" class="row g-2">
             <input type="hidden" name="add_stock">
-            <div class="col-3"><select name="metal" class="form-select"><option>Gold</option><option>Silver</option></select></div>
-            <div class="col-4"><input name="item_name" class="form-control" placeholder="Item (e.g. CHAIN)" required></div>
-            <div class="col-3"><input type="number" step="0.001" name="weight" class="form-control" placeholder="Weight" required></div>
-            <div class="col-2"><button class="btn btn-success w-100">Add</button></div>
+            <div class="col-3">
+                <select name="metal" class="form-select border-primary">
+                    <option>Gold</option>
+                    <option>Silver</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <input name="item_name" class="form-control border-primary" placeholder="Item (e.g. RING)" required>
+            </div>
+            <div class="col-3">
+                <input type="number" step="0.001" name="weight" class="form-control border-primary" placeholder="Weight (gm)" required>
+            </div>
+            <div class="col-2">
+                <button type="submit" class="btn btn-success w-100">Add Stock</button>
+            </div>
         </form>
 
-        <table class="table mt-3">
-            <thead class="table-dark"><tr><th>Metal</th><th>Item</th><th>Stock (gm)</th></tr></thead>
-            <tbody>
-                {% for item in inventory %}
-                <tr><td>{{ item.metal }}</td><td>{{ item.item_name }}</td><td>{{ item.weight }}</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table mt-4 table-hover border">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Metal</th>
+                        <th>Item</th>
+                        <th>Stock (gm)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in inventory %}
+                    <tr>
+                        <td>{{ item.metal }}</td>
+                        <td>{{ item.item_name }}</td>
+                        <td>{{ item.weight }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No items in inventory.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

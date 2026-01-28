@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill PDF Gallery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background: #f4f7f6; font-family: sans-serif; }
+        .container { margin-top: 30px; max-width: 800px; }
+        .file-card { 
+            background: white; border-radius: 10px; padding: 15px; 
+            margin-bottom: 12px; display: flex; justify-content: space-between; 
+            align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .pdf-icon { color: #e74c3c; font-size: 24px; margin-right: 15px; }
+        .hidden-card { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📂 Saved PDF Invoices</h2>
+        <a href="/" class="btn btn-outline-primary">Back</a>
+    </div>
+
+    <input type="text" id="searchInput" class="form-control form-control-lg mb-4" placeholder="🔍 Search bills...">
+
+    <div id="fileList">
+        {% for file in files %}
+        <div class="file-card">
+            <div class="d-flex align-items-center">
+                <span class="pdf-icon">📕</span>
+                <div>
+                    <strong class="d-block file-name">{{ file }}</strong>
+                    <small class="text-muted">PDF Document</small>
+                </div>
+            </div>
+            <div>
+                <a href="/view_pdf/{{ file }}" target="_blank" class="btn btn-sm btn-primary">👁️ View</a>
+                <button onclick="deleteFile('{{ file }}')" class="btn btn-sm btn-danger ms-2">🗑️ Delete</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No PDF bills found.</div>
+        {% endfor %}
+    </div>
+
+    <div id="noResults" class="alert alert-warning d-none">No matching bills found.</div>
+</div>
+
+<script>
+    // Search Logic
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let cards = document.querySelectorAll('.file-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            let name = card.querySelector('.file-name').textContent.toLowerCase();
+            if (name.includes(filter)) {
+                card.classList.remove('hidden-card');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden-card');
+            }
+        });
+        document.getElementById('noResults').classList.toggle('d-none', visibleCount > 0 || cards.length === 0);
+    });
+
+    // Improved Delete Logic
+    function deleteFile(fileName) {
+        if (!confirm(`Permanently delete "${fileName}"?`)) return;
+
+        fetch('/delete_pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: fileName })
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                response.json().then(data => {
+                    alert("Error: " + (data.error || "Could not delete"));
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Network error. Is the server running?");
+        });
+    }
+</script>
+
+</body>
+</html>
