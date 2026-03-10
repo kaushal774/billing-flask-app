@@ -3,81 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction History - Fakkad Jewellers</title>
+    <title>Transaction History - Search & Export</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     
     <style>
         body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .container-fluid { background: white; border-radius: 15px; margin-top: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 95%; }
+        .container { background: white; border-radius: 15px; margin-top: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 95%; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-        .table-responsive { border-radius: 10px; overflow: hidden; background: #fff; }
-        .dataTables_filter input { border: 2px solid #007bff !important; border-radius: 5px; padding: 5px 10px; outline: none; }
-        .badge-balance { font-weight: bold; color: #dc3545; background: #fff5f5; padding: 5px 10px; border-radius: 5px; border: 1px solid #feb2b2; }
+        .table-responsive { border-radius: 10px; overflow: hidden; }
+        .dataTables_filter input { border: 2px solid #007bff !important; border-radius: 5px; padding: 5px 10px; margin-left: 10px; outline: none; }
+        /* Style for the delete button */
+        .btn-delete-row { padding: 2px 8px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-
-<div class="container-fluid">
+<div class="container">
     <div class="header-flex">
-        <h2 style="margin:0; color: #2c3e50;">📊 Permanent Transaction Records</h2>
+        <h2 style="margin:0; color: #2c3e50;">📊 Transaction Records</h2>
         <div>
-            <a href="/download_excel" class="btn btn-success">📥 Download Excel Report</a>
+            <a href="/download_excel" class="btn btn-success">📥 Download Full Excel</a>
             <a href="/" class="btn btn-outline-primary">⬅ Back to Billing</a>
         </div>
     </div>
     
     <div class="table-responsive">
-        {% if transactions %}
-            <table id="recordTable" class="table table-striped table-hover table-bordered w-100">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Date</th>
-                        <th>Customer Name</th>
-                        <th>Mobile</th>
-                        <th>Metal</th>
-                        <th>Items Sold</th>
-                        <th>Net Wt. (g)</th>
-                        <th>Total Amount</th>
-                        <th>Paid</th>
-                        <th>Balance Due</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in transactions %}
-                    <tr>
-                        <td>{{ t.id }}</td>
-                        <td>{{ t.date }}</td>
-                        <td><strong>{{ t.customer }}</strong></td>
-                        <td>{{ t.mobile }}</td>
-                        <td>
-                            <span class="badge {% if t.metal == 'Gold' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
-                                {{ t.metal }}
-                            </span>
-                        </td>
-                        <td><small>{{ t.items }}</small></td>
-                        <td>{{ t.net_weight }}</td>
-                        <td>₹{{ "{:,.2f}".format(t.total_amount) }}</td>
-                        <td class="text-success">₹{{ "{:,.2f}".format(t.paid_amount) }}</td>
-                        <td>
-                            <span class="badge-balance">₹{{ "{:,.2f}".format(t.balance_due) }}</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" onclick="deleteRow({{ t.id }})">
-                                🗑️ Delete
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <div class="alert alert-info text-center">
-                <h4>No records found!</h4>
-                <p>Complete a transaction on the billing page to see data here. Records are now saved permanently in the database.</p>
+        {% if table %}
+            <div id="tableWrapper">
+                {{ table|safe }}
             </div>
+        {% else %}
+            <div class="alert alert-info">No records found. Complete a transaction to see data here.</div>
         {% endif %}
     </div>
 </div>
@@ -88,36 +44,50 @@
 
 <script>
     $(document).ready(function() {
-        // Initialize DataTable
+        let table = $('table');
+        table.attr('id', 'recordTable');
+
+        // 1. Manually add "Action" header
+        $('#recordTable thead tr').append('<th>Action</th>');
+
+        // 2. Manually add Delete button to each row
+        // We use the row index to tell the server which line to delete
+        $('#recordTable tbody tr').each(function(index) {
+            $(this).append(`
+                <td>
+                    <button class="btn btn-danger btn-sm btn-delete-row" onclick="deleteRow(${index})">
+                        🗑️ Delete
+                    </button>
+                </td>
+            `);
+        });
+        
+        // 3. Initialize DataTable
         $('#recordTable').DataTable({
-            "order": [[ 0, "desc" ]], // Show latest transactions first based on ID
+            "order": [[ 0, "desc" ]],
             "pageLength": 25,
             "language": {
-                "search": "🔍 Search Records:"
+                "search": "🔍 Quick Search:"
             }
         });
     });
 
-    // Function to handle database deletion
-    function deleteRow(recordId) {
-        if (confirm("WARNING: This will permanently delete this record from the database. Are you sure?")) {
-            fetch(`/delete_record/${recordId}`, {
+    // Function to handle deletion
+    function deleteRow(index) {
+        if (confirm("Are you sure you want to delete this transaction record? This will remove it from the Excel file.")) {
+            fetch(`/delete_record/${index}`, {
                 method: 'POST',
             })
             .then(response => {
                 if (response.ok) {
-                    location.reload(); // Refresh the page to show updated database list
+                    location.reload(); // Refresh to show updated excel data
                 } else {
-                    alert("Error: Could not delete the record.");
+                    alert("Error deleting record.");
                 }
             })
-            .catch(err => {
-                console.error("Request failed", err);
-                alert("Network error. Please check your connection.");
-            });
+            .catch(err => console.error("Request failed", err));
         }
     }
 </script>
-
 </body>
 </html>
